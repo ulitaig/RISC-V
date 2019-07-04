@@ -58,12 +58,17 @@ private:
 		return ans;
 	}
 public:
-	int cas, rs1, rs2, rd, rdval;
+	
+	int cas, rs1, rs2, rd, rdval, str, pc;
 	bool chgRD = false;
 	uint imm;
-	instruction() = default;
+	instruction()
+	{
+		clear();
+	}
 	instruction(uint ins)
 	{
+		str = ins;
 		cas = rs1 = rs2 = rd = -1;
 		imm = 0;
 		uint J = getseg(ins, 0, 6);
@@ -203,5 +208,11 @@ public:
 		default:
 			break;
 		}
+	}
+	void clear()
+	{
+		pc = imm = str = rdval = cas = 0;
+		rs1 = rs2 = rd = -1;
+		chgRD = false;
 	}
 };
