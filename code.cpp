@@ -7,7 +7,7 @@ using namespace std;
 registers rs;
 int main()
 {
-	//freopen("basicopt1.data","r",stdin);
+	//freopen("tak.data","r",stdin);
 	meminit();
 	
 
