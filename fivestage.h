@@ -3,9 +3,10 @@
 #include "memact.h"
 #include "register.h"
 #include "instruction.h"
+#include "branch_predictor.h"
 using namespace std;
 extern registers rs;
-inline bool stage1()
+inline int stage1()
 {
 	int insn = 0;
 	insn = readins(rs.PC);
@@ -38,7 +39,7 @@ inline bool stage1()
 
 	rs.PC += 4;
 	rs.tmp[0].pc = rs.PC;
-	return true;
+	return ins.cas;
 }
 inline bool stage2()
 {
@@ -102,6 +103,9 @@ inline int stage3()
 			rs.tmp[1].clear();
 			return rs.RD;
 		}
+		rs.tmp[2] = rs.tmp[1];
+		rs.tmp[1].clear();
+		return rs.tmp[2].pc;
 		break;
 	case 6:
 		if (rs.RS1 != rs.RS2)
@@ -113,6 +117,9 @@ inline int stage3()
 			rs.tmp[1].clear();
 			return rs.RD;
 		}
+		rs.tmp[2] = rs.tmp[1];
+		rs.tmp[1].clear();
+		return rs.tmp[2].pc;
 		break;
 	case 7:
 		if (rs.RS1 < rs.RS2)
@@ -124,6 +131,9 @@ inline int stage3()
 			rs.tmp[1].clear();
 			return rs.RD;
 		}
+		rs.tmp[2] = rs.tmp[1];
+		rs.tmp[1].clear();
+		return rs.tmp[2].pc;
 		break;
 	case 8:
 		if (rs.RS1 >= rs.RS2)
@@ -135,6 +145,9 @@ inline int stage3()
 			rs.tmp[1].clear();
 			return rs.RD;
 		}
+		rs.tmp[2] = rs.tmp[1];
+		rs.tmp[1].clear();
+		return rs.tmp[2].pc;
 		break;
 	case 9:
 		if (uint(rs.RS1) < uint(rs.RS2))
@@ -146,6 +159,9 @@ inline int stage3()
 			rs.tmp[1].clear();
 			return rs.RD;
 		}
+		rs.tmp[2] = rs.tmp[1];
+		rs.tmp[1].clear();
+		return rs.tmp[2].pc;
 		break;
 	case 10:
 		if (uint(rs.RS1) >= uint(rs.RS2))
@@ -157,6 +173,9 @@ inline int stage3()
 			rs.tmp[1].clear();
 			return rs.RD;
 		}
+		rs.tmp[2] = rs.tmp[1];
+		rs.tmp[1].clear();
+		return rs.tmp[2].pc;
 		break;
 	case 11:
 		rs.tmp[1].chgRD = true;
@@ -347,14 +366,14 @@ inline bool stage5()
 	rs.tmp[3].clear();
 	return true;
 }
-int run()
+inline int run()
 {
 	/*rs.x[1] = 1;
 	rs.x[2] = 2;
 	rs.x[3] = 3;
 	rs.x[4] = 1791;
 	rs.x[10] = 10;*/
-
+	int ppre;
 
 	int k;
 	rs.PC = 0;
@@ -363,7 +382,7 @@ int run()
 		stage5();
 
 		k = stage4();
-		if (k == -3) break;//读到终止符
+		if (k == -3) break;//读到终止符，直接结束
 		if (k == -2)//需要停三个周期
 		{
 			if (rs.tmp[1].empty()) stage2();//能跑先跑
@@ -373,17 +392,37 @@ int run()
 		k = stage3();
 		if (k != -1)//发现分支语句
 		{
-			rs.tmp[0].clear();
-			continue;
+			if (!check(k))//预测失败
+			{
+				k = rs.tmp[0].cas;
+				if (k >= 3 && k <= 10)
+					popone();
+				rs.tmp[0].clear();
+				continue;
+			}
+			else rs.chgPC = false;//成功，不用再改PC
 		}
 		if (stage2())
-			stage1();
+		{
+			k=stage1();
+			if (k >= 3 && k <= 10)//发现分支语句，进行预测
+			{
+				rs.PC = predict(rs.PC-4);
+			}
+		}
+			
 
 
-		instruction ins = rs.tmp[0];
-		/*cout <<rs.PC<<" : "<< ins.cas << " " << int(ins.imm) << " " << ins.rs1 << " " << ins.rs2 << " " << ins.rd<<endl;
-		if (rs.PC == 4168)
+		/*instruction ins = rs.tmp[0];
+		cout <<rs.PC<<" : "<< ins.cas << " " << int(ins.imm) << " " << ins.rs1 << " " << ins.rs2 << " " << ins.rd<<endl;
+
+		
+		if (rs.PC == 4196)
+		{
 			puts("fuck");
+		}ppre = rs.PC;
+			
+			
 			printf("%d ", rs.PC);
 			for (int i = 0; i < 32; i++)
 				printf("%d ", rs.x[i]);
