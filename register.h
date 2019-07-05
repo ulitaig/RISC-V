@@ -14,14 +14,4 @@ struct registers
 		memset(x, 0, sizeof(x));
 		memset(chged, 0, sizeof(chged));
 	}
-	void clear()
-	{
-		if(tmp[1].rd>0)
-			chged[tmp[1].rd]--;
-		tmp[2].clear();
-		tmp[1].clear();
-		tmp[0].clear();
-		RS1 = RS2 = IMM = RD = 0;
-		chgPC = chgmem = false;
-	}
 };

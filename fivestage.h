@@ -58,7 +58,7 @@ inline bool stage2()
 	rs.tmp[0].clear();
 	return true;
 }
-inline bool stage3()
+inline int stage3()
 {
 	rs.chgPC = rs.tmp[1].chgRD = rs.chgmem = false;
 
@@ -77,18 +77,30 @@ inline bool stage3()
 		rs.chgPC = true;
 		rs.RD = rs.tmp[1].pc + rs.IMM - 4;
 		rs.tmp[1].rdval = rs.tmp[1].pc;
+
+		rs.tmp[2] = rs.tmp[1];
+		rs.tmp[1].clear();
+		return rs.RD;
 		break;
 	case 4:
 		rs.tmp[1].chgRD = true;
 		rs.chgPC = true;
 		rs.RD = rs.RS1 + rs.IMM;
 		rs.tmp[1].rdval = rs.tmp[1].pc;
+
+		rs.tmp[2] = rs.tmp[1];
+		rs.tmp[1].clear();
+		return rs.RD;
 		break;
 	case 5:
 		if (rs.RS1 == rs.RS2)
 		{
 			rs.chgPC = true;
 			rs.RD = rs.tmp[1].pc + rs.IMM - 4;
+
+			rs.tmp[2] = rs.tmp[1];
+			rs.tmp[1].clear();
+			return rs.RD;
 		}
 		break;
 	case 6:
@@ -96,6 +108,10 @@ inline bool stage3()
 		{
 			rs.chgPC = true;
 			rs.RD = rs.tmp[1].pc + rs.IMM - 4;
+
+			rs.tmp[2] = rs.tmp[1];
+			rs.tmp[1].clear();
+			return rs.RD;
 		}
 		break;
 	case 7:
@@ -103,6 +119,10 @@ inline bool stage3()
 		{
 			rs.chgPC = true;
 			rs.RD = rs.tmp[1].pc + rs.IMM - 4;
+
+			rs.tmp[2] = rs.tmp[1];
+			rs.tmp[1].clear();
+			return rs.RD;
 		}
 		break;
 	case 8:
@@ -110,6 +130,10 @@ inline bool stage3()
 		{
 			rs.chgPC = true;
 			rs.RD = rs.tmp[1].pc + rs.IMM - 4;
+
+			rs.tmp[2] = rs.tmp[1];
+			rs.tmp[1].clear();
+			return rs.RD;
 		}
 		break;
 	case 9:
@@ -117,6 +141,10 @@ inline bool stage3()
 		{
 			rs.chgPC = true;
 			rs.RD = rs.tmp[1].pc + rs.IMM - 4;
+
+			rs.tmp[2] = rs.tmp[1];
+			rs.tmp[1].clear();
+			return rs.RD;
 		}
 		break;
 	case 10:
@@ -124,6 +152,10 @@ inline bool stage3()
 		{
 			rs.chgPC = true;
 			rs.RD = rs.tmp[1].pc + rs.IMM - 4;
+
+			rs.tmp[2] = rs.tmp[1];
+			rs.tmp[1].clear();
+			return rs.RD;
 		}
 		break;
 	case 11:
@@ -259,7 +291,7 @@ inline bool stage3()
 	}
 	rs.tmp[2] = rs.tmp[1];
 	rs.tmp[1].clear();
-	return true;
+	return -1;
 }
 inline int stage4()
 {
@@ -298,7 +330,7 @@ inline int stage4()
 		rs.PC = rs.RD;
 		rs.tmp[3] = rs.tmp[2];
 		rs.tmp[2].clear();
-		return rs.PC;
+		return -1;
 	}
 
 	rs.tmp[3] = rs.tmp[2];
@@ -338,19 +370,15 @@ int run()
 			if (rs.tmp[0].empty()) stage1();
 			continue;
 		}
+		k = stage3();
 		if (k != -1)//发现分支语句
 		{
-			rs.clear();
+			rs.tmp[0].clear();
 			continue;
 		}
+		if (stage2())
+			stage1();
 
-
-		if (stage3())
-		{
-			if (stage2())
-				stage1();
-		}
-		else if (rs.tmp[0].empty()) stage1();//能跑先跑
 
 		instruction ins = rs.tmp[0];
 		/*cout <<rs.PC<<" : "<< ins.cas << " " << int(ins.imm) << " " << ins.rs1 << " " << ins.rs2 << " " << ins.rd<<endl;
