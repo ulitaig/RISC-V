@@ -91,7 +91,7 @@ inline int stage3()
 
 		rs.tmp[2] = rs.tmp[1];
 		rs.tmp[1].clear();
-		return rs.RD;
+		return -5;
 		break;
 	case 5:
 		if (rs.RS1 == rs.RS2)
@@ -385,17 +385,18 @@ inline int run()
 		if (k == -3) break;//读到终止符，直接结束
 		if (k == -2)//需要停三个周期
 		{
-			if (rs.tmp[1].empty()) stage2();//能跑先跑
-			if (rs.tmp[0].empty()) stage1();
+			//if (rs.tmp[1].empty()) stage2();//能跑先跑
 			continue;
 		}
-		k = stage3();
+		ppre = k = stage3();
 		if (k != -1)//发现分支语句
 		{
-			if (!check(k))//预测失败
+			if (k==-5||!check(k))//预测失败或者碰到JALR
 			{
+				if (k != -5)
+					rs.PC = k;
 				k = rs.tmp[0].cas;
-				if (k >= 3 && k <= 10)
+				if (k >= 3 && k <= 10 && k != 4)
 					popone();
 				rs.tmp[0].clear();
 				continue;
@@ -404,25 +405,25 @@ inline int run()
 		}
 		if (stage2())
 		{
-			k=stage1();
-			if (k >= 3 && k <= 10)//发现分支语句，进行预测
+			k = stage1();
+			if (k >= 3 && k <= 10 && k != 4)//发现分支语句，进行预测
 			{
-				rs.PC = predict(rs.PC-4);
+				rs.PC = predict(rs.PC - 4);
 			}
 		}
-			
+
 
 
 		/*instruction ins = rs.tmp[0];
 		cout <<rs.PC<<" : "<< ins.cas << " " << int(ins.imm) << " " << ins.rs1 << " " << ins.rs2 << " " << ins.rd<<endl;
 
-		
-		if (rs.PC == 4196)
+
+		if (rs.PC == 4124)
 		{
 			puts("fuck");
 		}ppre = rs.PC;
-			
-			
+
+
 			printf("%d ", rs.PC);
 			for (int i = 0; i < 32; i++)
 				printf("%d ", rs.x[i]);

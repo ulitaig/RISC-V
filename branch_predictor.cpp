@@ -4,7 +4,7 @@ using namespace std;
 const int N = 1000003;
 struct node
 {
-	int pre;
+	uint pre;
 	int to;
 	int njal[4],jal[4];
 
@@ -26,7 +26,7 @@ inline node& H(int o)
 queue<int> que;
 int predict(int pos)
 {
-	node o = H(pos);
+	node &o = H(pos);
 	que.push(pos);
 	int n2 = getseg(o.pre, 0, 1);
 	o.pre <<= 1;
@@ -40,9 +40,11 @@ int predict(int pos)
 }
 bool check(int PC)
 {
+	//if (PC == 4252)
+	//	puts("asd");
 	int pos = que.front();
 	que.pop();
-	node o = H(pos);
+	node &o = H(pos);
 	int n2 = getseg(o.pre, 1, 2);
 	if (PC == pos + 4)
 	{
@@ -64,6 +66,8 @@ bool check(int PC)
 		}
 		return false;
 	}
+	if (o.to != PC)
+		puts("fuck");
 	if ((o.pre & 1) == 0)
 	{
 		o.pre += 1;
