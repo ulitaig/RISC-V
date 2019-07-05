@@ -129,7 +129,7 @@ inline bool stage3()
 	case 11:
 		rs.tmp[1].chgRD = true;
 		rs.chgmem = true;
-		rs.address= rs.RS1 + rs.IMM;
+		rs.address = rs.RS1 + rs.IMM;
 		rs.chgmemtype = 2;
 		break;
 	case 12:
@@ -328,23 +328,29 @@ int run()
 	rs.PC = 0;
 	for (;;)
 	{
-		if (stage5())
+		stage5();
+
+		k = stage4();
+		if (k == -3) break;//读到终止符
+		if (k == -2)//需要停三个周期
 		{
-			k = stage4();
-			if (k == -3) break;
-			if (k == -2) continue;
-			if (k != -1)
-			{
-				rs.clear();
-				continue;
-			}
-
-
-			if (stage3())
-				if (stage2())
-					stage1();
-
+			if (rs.tmp[1].empty()) stage2();//能跑先跑
+			if (rs.tmp[0].empty()) stage1();
+			continue;
 		}
+		if (k != -1)//发现分支语句
+		{
+			rs.clear();
+			continue;
+		}
+
+
+		if (stage3())
+		{
+			if (stage2())
+				stage1();
+		}
+		else if (rs.tmp[0].empty()) stage1();//能跑先跑
 
 		instruction ins = rs.tmp[0];
 		/*cout <<rs.PC<<" : "<< ins.cas << " " << int(ins.imm) << " " << ins.rs1 << " " << ins.rs2 << " " << ins.rd<<endl;

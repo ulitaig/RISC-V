@@ -215,4 +215,8 @@ public:
 		rs1 = rs2 = rd = -1;
 		chgRD = false;
 	}
+	bool empty()
+	{
+		return str == 0;
+	}
 };
