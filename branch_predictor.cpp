@@ -1,14 +1,14 @@
 #include "stdc++.h"
 #include "branch_predictor.h"
 using namespace std;
-const int N = 100003;
+const int N = 1000003;
 struct node
 {
 	static const int n1 = 6, m1 = 3, n2 = 4, m2 = 2;
 	uint pre;
 	int to;
-	short state[40], cplex[40];
-	int njal[100], jal[100];
+	short state[4], cplex[4];
+	int njal[16], jal[16];
 
 	int v;
 	node()
