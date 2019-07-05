@@ -4,17 +4,40 @@ using namespace std;
 const int N = 1000003;
 struct node
 {
+	static const int n1 = 6, m1 = 3, n2 = 4, m2 = 2;
 	uint pre;
 	int to;
-	int njal[4],jal[4];
+	short state[4], cplex[4];
+	int njal[16], jal[16];
 
 	int v;
 	node()
 	{
 		pre = 0; to = -1; v = -1;
+		for (int i = 0; i < 4; i++)
+			cplex[i] = m2-1 , state[i] = m1 - 1;
+
 		memset(njal, 0, sizeof(njal));
 		memset(jal, 0, sizeof(jal));
 	}
+	void chs(const int &k)
+	{
+		if (state[k] > 0) state[k]--;
+	}
+	void nchs(const int &k)
+	{
+		if (state[k] < n1 - 1) state[k]++;
+	}
+
+	void is_right(const int &k)
+	{
+		if (cplex[k] > 0) cplex[k]--;
+	}
+	void not_right(const int &k)
+	{
+		if (cplex[k] < n2 - 1) cplex[k]++;
+	}
+
 }h[N + 5];
 inline node& H(int o)
 {
@@ -31,24 +54,38 @@ int predict(int pos)
 	int n2 = getseg(o.pre, 0, 1);
 	o.pre <<= 1;
 	if (o.to == -1) return pos + 4;
-	if (o.jal[n2] >= o.njal[n2])
+	if (o.cplex[n2] < node::m2)//using Two-level adaptive predictor
 	{
-		o.pre += 1;
-		return o.to;
+		if (o.state[n2] < node::m1)
+		{
+			o.pre += 1;
+			return o.to;
+		}
+	}
+	else//overriding, and using local branch predictor
+	{
+		int n4 = getseg(o.pre, 0, 3);
+		if (o.jal[n2] >= o.njal[n2])
+		{
+			o.pre += 1;
+			return o.to;
+		}
 	}
 	return pos + 4;
 }
 bool check(int PC)
 {
-	//if (PC == 4252)
-	//	puts("asd");
 	int pos = que.front();
 	que.pop();
 	node &o = H(pos);
-	int n2 = getseg(o.pre, 1, 2);
+	int n2 = getseg(o.pre, 1, 2), n4 = getseg(o.pre, 1, 4);;
 	if (PC == pos + 4)
 	{
-		o.njal[n2]++;
+		if (o.state[n2] < node::m1) o.not_right(n2);
+		else o.is_right(n2);
+
+		o.nchs(n2);
+		o.njal[n4]++;
 		if ((o.pre & 1) == 1)
 		{
 			o.pre -= 1;
@@ -56,7 +93,8 @@ bool check(int PC)
 		}
 		return true;
 	}
-	o.jal[n2]++;
+	o.chs(n2);
+	o.jal[n4]++;
 	if (o.to == -1)
 	{
 		o.to = PC;
@@ -66,8 +104,10 @@ bool check(int PC)
 		}
 		return false;
 	}
-	if (o.to != PC)
-		puts("fuck");
+
+	if (o.state[n2] < node::m1) o.is_right(n2);
+	else o.not_right(n2);
+
 	if ((o.pre & 1) == 0)
 	{
 		o.pre += 1;
@@ -79,4 +119,3 @@ void popone()
 {
 	que.pop();
 }
-

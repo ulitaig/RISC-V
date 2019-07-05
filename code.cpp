@@ -1,13 +1,11 @@
 #include "stdc++.h"
 #include "memact.h"
-#include "register.h"
-#include "instruction.h"
 #include "fivestage.h"
 using namespace std;
 registers rs;
 int main()
 {
-	//freopen("tak.data","r",stdin);
+	freopen("superloop.data","r",stdin);
 	meminit();
 	
 
@@ -15,6 +13,6 @@ int main()
 
 	cout << run() << endl;
 
-	//getchar();
+	getchar();
 	return 0;
 }

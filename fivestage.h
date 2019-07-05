@@ -14,29 +14,6 @@ inline int stage1()
 	instruction ins(insn);
 	rs.tmp[0] = ins;
 
-
-
-
-
-	/*static int i = 0;
-	if (i == 0)
-	{
-		i++;
-		rs.tmp[0].cas = 18;
-		rs.tmp[0].rs1 = 1;
-		rs.tmp[0].imm = 1000;
-		rs.tmp[0].rs2 = 4;
-	}
-	else if (i == 1)
-	{
-		i++;
-		rs.tmp[0].cas = 13;
-		rs.tmp[0].rs1 = 2;
-		rs.tmp[0].imm = 999;
-		rs.tmp[0].rd = 10;
-	}
-	else return false;*/
-
 	rs.PC += 4;
 	rs.tmp[0].pc = rs.PC;
 	return ins.cas;
@@ -315,9 +292,6 @@ inline int stage3()
 inline int stage4()
 {
 	if (rs.tmp[2].str == 0x00c68223) return -3;
-
-
-
 	static int cnt = -1;
 	if (rs.chgmem)
 	{
@@ -358,7 +332,7 @@ inline int stage4()
 }
 inline bool stage5()
 {
-	if (rs.tmp[3].chgRD&&rs.tmp[3].rd > 0)//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	if (rs.tmp[3].chgRD&&rs.tmp[3].rd > 0)
 	{
 		rs.x[rs.tmp[3].rd] = rs.tmp[3].rdval;
 		rs.chged[rs.tmp[3].rd]--;
@@ -368,12 +342,9 @@ inline bool stage5()
 }
 inline int run()
 {
-	/*rs.x[1] = 1;
-	rs.x[2] = 2;
-	rs.x[3] = 3;
-	rs.x[4] = 1791;
-	rs.x[10] = 10;*/
-	int ppre;
+	//int cnt = 0, right = 0;
+
+
 
 	int k;
 	rs.PC = 0;
@@ -385,23 +356,31 @@ inline int run()
 		if (k == -3) break;//读到终止符，直接结束
 		if (k == -2)//需要停三个周期
 		{
-			//if (rs.tmp[1].empty()) stage2();//能跑先跑
+			if (rs.tmp[1].empty()) stage2();//能跑先跑
 			continue;
 		}
-		ppre = k = stage3();
+		k = stage3();
 		if (k != -1)//发现分支语句
 		{
 			if (k==-5||!check(k))//预测失败或者碰到JALR
 			{
 				if (k != -5)
 					rs.PC = k;
+
+				//if (k != -5)
+				//	cnt++;
+
+
 				k = rs.tmp[0].cas;
 				if (k >= 3 && k <= 10 && k != 4)
 					popone();
 				rs.tmp[0].clear();
+				
+				
+				
 				continue;
 			}
-			else rs.chgPC = false;//成功，不用再改PC
+			else rs.chgPC = false;// , right++, cnt++;//成功，不用再改PC
 		}
 		if (stage2())
 		{
@@ -429,5 +408,8 @@ inline int run()
 				printf("%d ", rs.x[i]);
 			puts("");*/
 	}
+
+	//cout << double(right) / cnt << endl;
+
 	return ((unsigned int)rs.x[10]) & 255u;
 }
